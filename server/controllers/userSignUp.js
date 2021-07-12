@@ -2,6 +2,8 @@ const User = require('../models/user');
 const UnverifiedUser = require('../models/unverifiedUser');
 const { getHash } = require('../helpers/passwordHash');
 const { getToken } = require('../helpers/token');
+const { sendEmail } = require('../helpers/sendEmail');
+const { signupVerify } = require('../helpers/emailTemplate');
 
 module.exports = {
     signUp: async (req, res, next) => {
@@ -11,7 +13,7 @@ module.exports = {
             .then(async (user) => {
                 // user already exists in the user DB
                 if (user) {
-                    res.status(200).json({ "message": "User with this e-mail already exists" })
+                    res.status(200).json({ "message": "User with this e-mail already exists", "success": false })
                 } else {
                     // user doesn't exists in user DB
 
@@ -30,11 +32,11 @@ module.exports = {
                                     .then(result => console.log('user successfully deleted'))
                                     .catch(err => {
                                         console.log('Error occured ', err);;
-                                        res.status(500).json({ "message": "Internal Server Error" });
+                                        res.status(500).json({ "message": "Internal Server Error", "success": false });
                                     })
                             }
 
-                            // creating a new user and save it to the unverifiedUser DB
+                            // creating a new user and save it to the unverifiedUser D
 
                             const newUser = new UnverifiedUser({
                                 "name": req.body.name,
@@ -45,24 +47,30 @@ module.exports = {
 
                             // storing user in the unverifiedUser DB
 
-                            newUser.save()
+                            await newUser.save()
                                 .then(result => console.log('user successfully saved in unverifiedUser db'))
                                 .catch(err => {
                                     console.log('Error occured ', err);;
-                                    res.status(500).json({ "message": "Internal Server Error" });
+                                    res.status(500).json({ "message": "Internal Server Error", "success": false });
                                 })
+
+                            // sending signup verification email
+
+                            sendEmail(signupVerify(newUser), newUser);
+
                         })
                         .catch(err => {
                             console.log('Error occured ', err);;
-                            res.status(500).json({ "message": "Internal Server Error" });
+                            res.status(500).json({ "message": "Internal Server Error", "success": false });
                         })
 
-                    res.status(200).json({ "message": "Please verify your account" });
+
+                    res.status(200).json({ "message": "Please verify your account", "success": true });
                 }
             })
             .catch(err => {
                 console.log('Error occured ', err);;
-                res.status(500).json({ "message": "Internal Server Error" });
+                res.status(500).json({ "message": "Internal Server Error", "success": false });
             });
     }
 }
