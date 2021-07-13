@@ -23,19 +23,12 @@ module.exports = {
                     // so we have to either update his details or delete his previously stored details
                     // here we will delete it's previous details and store the new details 
 
-                    await UnverifiedUser.findOne({ "email": req.body.email })
-                        .then(async (user) => {
+                    await UnverifiedUser.findOneAndDelete({ "email": req.body.email })
+                        .then(async (deletedUser) => {
                             // user already exists in the unverifiedUser DB
-                            if (user) {
-                                // deleting previous entry of the user
-                                await UnverifiedUser.deleteOne({ "email": req.body.email })
-                                    .then(result => console.log('user successfully deleted'))
-                                    .catch(err => {
-                                        console.log('Error occured ', err);;
-                                        res.status(500).json({ "message": "Internal Server Error", "success": false });
-                                    })
+                            if (deletedUser) {
+                                console.log('user successfully deleted from unverified user DB');
                             }
-
                             // creating a new user and save it to the unverifiedUser D
 
                             const newUser = new UnverifiedUser({
@@ -57,7 +50,6 @@ module.exports = {
                             // sending signup verification email
 
                             sendEmail(signupVerify(newUser), newUser);
-
                         })
                         .catch(err => {
                             console.log('Error occured ', err);;
@@ -65,7 +57,7 @@ module.exports = {
                         })
 
 
-                    res.status(200).json({ "message": "Please verify your account", "success": true });
+                    res.status(200).json({ "message": "Please verify your account, an email has been sent to your account", "success": true });
                 }
             })
             .catch(err => {
