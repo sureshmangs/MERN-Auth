@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 const connectDB = require('./connectDB.js');
 
 const app = express();
@@ -14,6 +15,10 @@ app.use(express.json());
 
 // HTTP request logger middleware 
 app.use(morgan('tiny'));
+
+// By default requests from any other origins will be restricted by the browser 
+// so we need to enable Cross-Origin Resource Sharing
+app.use(cors())
 
 // Connect to Database
 connectDB();
